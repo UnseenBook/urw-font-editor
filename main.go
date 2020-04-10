@@ -15,17 +15,16 @@ func main() {
 
 	img := image.NewGray(image.Rect(0, 0, charWidth, (charHeight+2)*charCount))
 
-	file, err := os.Open("URW.FNT") // For read access.
+	font, err := os.Open("URW.FNT")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer file.Close()
+	defer font.Close()
 
 	buffer := make([]byte, 1)
-
 	for y := 0; y < imgHeight; y++ {
 		for x := 0; x < imgWidth; x++ {
-			_, err := file.Read(buffer)
+			_, err := font.Read(buffer)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -37,13 +36,13 @@ func main() {
 		}
 	}
 
-	f, err := os.Create("image.png")
+	outputFont, err := os.Create("image.png")
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer outputFont.Close()
 
-	if err := png.Encode(f, img); err != nil {
-		f.Close()
+	if err := png.Encode(outputFont, img); err != nil {
 		log.Fatal(err)
 	}
 
