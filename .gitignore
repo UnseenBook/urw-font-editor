@@ -1,3 +1,6 @@
+# URW files that shouldn't get committed
+URW.FNT
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
