@@ -1,11 +1,11 @@
 package main
 
 import (
-	"image"
-	"image/color"
 	"image/png"
 	"log"
 	"os"
+
+	"github.com/UnseenBook/urw-font-editor/output"
 )
 
 func main() {
@@ -13,7 +13,7 @@ func main() {
 	const imgHeight = (charHeight + 2) * charCount
 	const imgWidth = charWidth
 
-	img := image.NewGray(image.Rect(0, 0, charWidth, (charHeight+2)*charCount))
+	outPutImage := output.NewOutputImage()
 
 	font, err := os.Open("URW.FNT")
 	if err != nil {
@@ -21,18 +21,19 @@ func main() {
 	}
 	defer font.Close()
 
-	buffer := make([]byte, 1)
-	for y := 0; y < imgHeight; y++ {
-		for x := 0; x < imgWidth; x++ {
-			_, err := font.Read(buffer)
-			if err != nil {
-				log.Fatal(err)
-			}
-			if buffer[0] == 0 {
-				img.Set(x, y, color.Gray{255})
-			} else {
-				img.Set(x, y, color.Gray{0})
-			}
+	buffer := make([]byte, 80)
+
+	for {
+		count, err := font.Read(buffer)
+		if count == 0 {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, err = outPutImage.Write(buffer)
+		if err != nil {
+			log.Fatal(err)
 		}
 	}
 
@@ -42,11 +43,7 @@ func main() {
 	}
 	defer outputFont.Close()
 
-	if err := png.Encode(outputFont, img); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := f.Close(); err != nil {
+	if err := png.Encode(outputFont, outPutImage); err != nil {
 		log.Fatal(err)
 	}
 }
