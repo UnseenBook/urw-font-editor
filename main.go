@@ -5,15 +5,36 @@ import (
 	"log"
 	"os"
 
-	"github.com/UnseenBook/urw-font-editor/output"
+	"github.com/UnseenBook/urw-font-editor/image"
 )
 
 func main() {
-	const charCount, charWidth, charHeight = 256, 8, 8
-	const imgHeight = (charHeight + 2) * charCount
-	const imgWidth = charWidth
+	inputImage := image.NewInputImage()
 
-	outPutImage := output.NewOutputImage()
+	fontBytes := make([]byte, 0, 2560)
+	buffer := make([]byte, image.CharSize)
+	for {
+		count, err := inputImage.Read(buffer)
+		if count == 0 {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		fontBytes = append(fontBytes, buffer...)
+	}
+
+	outputFont, err := os.Create("New_URW.FNT")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer outputFont.Close()
+	_, err = outputFont.Write(fontBytes)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	outputImage := image.NewOutputImage()
 
 	font, err := os.Open("URW.FNT")
 	if err != nil {
@@ -21,7 +42,7 @@ func main() {
 	}
 	defer font.Close()
 
-	buffer := make([]byte, 80)
+	buffer = make([]byte, image.CharSize)
 
 	for {
 		count, err := font.Read(buffer)
@@ -31,19 +52,19 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		_, err = outPutImage.Write(buffer)
+		_, err = outputImage.Write(buffer)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	outputFont, err := os.Create("image.png")
+	outputImageFile, err := os.Create("image.png")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer outputFont.Close()
+	defer outputImageFile.Close()
 
-	if err := png.Encode(outputFont, outPutImage); err != nil {
+	if err := png.Encode(outputImageFile, outputImage); err != nil {
 		log.Fatal(err)
 	}
 }
