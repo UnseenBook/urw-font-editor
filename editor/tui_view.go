@@ -37,7 +37,7 @@ func (f Font) String() string {
 	text := ""
 	lines := make([]string, 0, 16)
 	for i, char := range f.Chars {
-		if i != 0 && i%8 == 0 {
+		if i != 0 && i%16 == 0 {
 			lines = append(lines, text)
 			text = ""
 		}

@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/UnseenBook/urw-font-editor/editor"
+	"github.com/UnseenBook/urw-font-editor/tui"
+	tea "github.com/charmbracelet/bubbletea"
 	"log"
 	"os"
 )
@@ -19,5 +21,13 @@ func main() {
 	if erro != nil {
 		log.Fatal(erro)
 	}
-	fmt.Println(font)
+	p := tea.NewProgram(
+		tui.NewTui(font),
+		tea.WithAltScreen(),
+		tea.WithMouseCellMotion(),
+	)
+	if _, progErr := p.Run(); progErr != nil {
+		fmt.Println("could not run program:", err)
+		os.Exit(1)
+	}
 }
