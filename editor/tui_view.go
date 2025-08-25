@@ -2,15 +2,20 @@ package editor
 
 import (
 	"github.com/charmbracelet/lipgloss"
+	"strings"
 )
 
 var PixelStyle = lipgloss.NewStyle().
+	Background(lipgloss.Color("#222222")).
+	Foreground(lipgloss.Color("#dddddd"))
+
+var Selected = lipgloss.NewStyle().
 	Background(lipgloss.Color("#333333")).
 	Foreground(lipgloss.Color("#ffffff"))
 
 var CharStyle = lipgloss.NewStyle().
 	BorderStyle(lipgloss.InnerHalfBlockBorder()).
-	BorderForeground(lipgloss.Color("#a0a0a0"))
+	BorderForeground(lipgloss.Color("1"))
 
 func (p Pixel) String() string {
 	text := "  "
@@ -21,33 +26,37 @@ func (p Pixel) String() string {
 }
 
 func (c Char) String() string {
-	text := ""
-	lines := make([]string, 0, 10)
+	line := make([]string, 0, c.Width())
+	lines := make([]string, 0, c.Height())
 	for _, pixels := range c {
 		for _, pixel := range pixels {
-			text += pixel.String()
+			line = append(line, pixel.String())
 		}
-		lines = append(lines, text)
-		text = ""
+		lines = append(lines, strings.Join(line, ""))
+		line = line[:0]
 	}
 	return CharStyle.Render(lipgloss.JoinVertical(0, lines...))
 }
 
+func (c Char) Width() int {
+	return len(c[0])
+}
+
+func (c Char) Height() int {
+	return len(c)
+}
+
 func (f Font) String() string {
-	text := ""
-	lines := make([]string, 0, 16)
+	line := make([]string, 0, 1)
+	lines := make([]string, 0, 1)
 	for i, char := range f.Chars {
-		if i != 0 && i%16 == 0 {
-			lines = append(lines, text)
-			text = ""
+		if i != 0 && i%f.Width == 0 {
+			lines = append(lines, lipgloss.JoinHorizontal(lipgloss.Top, line...))
+			line = line[:0]
 		}
-		if text == "" {
-			text = char.String()
-			continue
-		}
-		text = lipgloss.JoinHorizontal(0, text, char.String())
+		line = append(line, char.String())
 	}
-	lines = append(lines, text)
+	lines = append(lines, lipgloss.JoinHorizontal(lipgloss.Top, line...))
 
 	return lipgloss.JoinVertical(0, lines...)
 }

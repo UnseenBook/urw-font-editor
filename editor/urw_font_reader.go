@@ -14,9 +14,11 @@ func NewUrwFontReader(file io.Reader) UrwFontReader {
 }
 
 func (f UrwFontReader) ReadFont() (Font, error) {
-	chars := make([]Char, 0, 16*16)
+	width := 16
+	height := 16
+	chars := make([]Char, 0, width*height)
 
-	for i := 0; i < 16*16; i++ {
+	for i := 0; i < width*height; i++ {
 		c, err := f.readChar()
 		if err != nil {
 			return Font{}, err
@@ -24,7 +26,7 @@ func (f UrwFontReader) ReadFont() (Font, error) {
 		chars = append(chars, c)
 	}
 
-	return Font{Chars: chars}, nil
+	return Font{Chars: chars, Width: width, Height: height}, nil
 }
 
 func (f UrwFontReader) readChar() (Char, error) {

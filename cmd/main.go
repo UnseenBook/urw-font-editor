@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/UnseenBook/urw-font-editor/editor"
 	"github.com/UnseenBook/urw-font-editor/tui"
 	tea "github.com/charmbracelet/bubbletea"
-	"log"
-	"os"
+	zone "github.com/lrstanley/bubblezone"
 )
 
 func main() {
@@ -17,12 +19,14 @@ func main() {
 	defer inputFontFile.Close()
 	fr := editor.NewUrwFontReader(inputFontFile)
 
+	zone.NewGlobal()
+	defer zone.Close()
 	font, erro := fr.ReadFont()
 	if erro != nil {
 		log.Fatal(erro)
 	}
 	p := tea.NewProgram(
-		tui.NewTui(font),
+		tui.NewFontViewer(font),
 		tea.WithAltScreen(),
 		tea.WithMouseCellMotion(),
 	)

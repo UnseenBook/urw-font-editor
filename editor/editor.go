@@ -6,11 +6,20 @@ type Pixel bool
 type Char [][]Pixel
 
 type Font struct {
-	Chars []Char
+	Chars  []Char
+	Width  int
+	Height int
 }
 
 type FontReader interface {
 	ReadFont() (Font, error)
+}
+
+func (f Font) Char(x, y int) Char {
+	i := y*f.Width + x
+
+	// Clamp i between 0 and the last index of Chars
+	return f.Chars[min(max(i, 0), len(f.Chars)-1)]
 }
 
 func (f Font) FillFont(fr FontReader) (Font, error) {
