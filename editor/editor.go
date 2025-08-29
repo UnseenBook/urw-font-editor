@@ -29,3 +29,18 @@ func (f Font) FillFont(fr FontReader) (Font, error) {
 	}
 	return f, nil
 }
+
+func (f Font) TogglePixel(c, x, y int) Font {
+	if c < 0 || c >= len(f.Chars) {
+		return f
+	}
+
+	char := f.Chars[c]
+	if x < 0 || x >= char.Width() || y < 0 || y >= char.Height() {
+		return f
+	}
+
+	char[y][x] = !char[y][x]
+	f.Chars[c] = char
+	return f
+}

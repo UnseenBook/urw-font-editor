@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/UnseenBook/urw-font-editor/editor"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -38,7 +39,7 @@ var (
 )
 
 func NewFontViewer(f editor.Font) FontViewer {
-	return FontViewer{font: f, selectedChar: 2, selectedPixel: Vector{2, 2}}
+	return FontViewer{font: f, selectedChar: 2, selectedPixel: Vector{2, 2}, keyMap: DefaultKeyMap()}
 }
 
 type Vector struct {
@@ -52,6 +53,7 @@ type FontViewer struct {
 	selectedChar  int
 	selectedPixel Vector
 	dimensions    tea.WindowSizeMsg
+	keyMap        KeyMap
 }
 
 func (m FontViewer) Name() string {
@@ -86,17 +88,17 @@ func (m FontViewer) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
+		switch {
+		case key.Matches(msg, m.keyMap.Quit):
 			return m, tea.Quit
-		case "ctrl+right":
+		case key.Matches(msg, m.keyMap.CharRight):
 			// If selectedChar is at the edge don't do anything
 			if m.selectedChar%m.font.Width == m.font.Width-1 {
 				return m, nil
 			}
 			m.selectedChar++
 			return m, nil
-		case "ctrl+left":
+		case key.Matches(msg, m.keyMap.CharLeft):
 			// If selectedChar is at the left edge don't do anything
 			if m.selectedChar%m.font.Width == 0 {
 				return m, nil
@@ -104,20 +106,20 @@ func (m FontViewer) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Move to the left Char
 			m.selectedChar--
 			return m, nil
-		case "ctrl+down":
+		case key.Matches(msg, m.keyMap.CharDown):
 			// If at the bottom of the font
 			if m.selectedChar/m.font.Width == m.font.Height-1 {
 				return m, nil
 			}
 			m.selectedChar += m.font.Width
 			return m, nil
-		case "ctrl+up":
+		case key.Matches(msg, m.keyMap.CharUp):
 			if m.selectedChar/m.font.Width == 0 {
 				return m, nil
 			}
 			m.selectedChar -= m.font.Width
 			return m, nil
-		case "right":
+		case key.Matches(msg, m.keyMap.Right):
 			// If cursor is at the char right edge
 			if m.selectedPixel.x == m.font.Chars[m.selectedChar].Width()-1 {
 				// If selectedChar is at the edge don't do anything
@@ -132,7 +134,7 @@ func (m FontViewer) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Can move right within the current Char
 			m.selectedPixel.x++
 			return m, nil
-		case "left":
+		case key.Matches(msg, m.keyMap.Left):
 			// If cursor is at the char left edge
 			if m.selectedPixel.x == 0 {
 				// If selectedChar is at the left edge don't do anything
@@ -147,7 +149,7 @@ func (m FontViewer) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Can move left withing the current Char
 			m.selectedPixel.x--
 			return m, nil
-		case "down":
+		case key.Matches(msg, m.keyMap.Down):
 			// If cursor is at the char bottom
 			if m.selectedPixel.y == m.font.Chars[m.selectedChar].Height()-1 {
 				// If at the bottom of the font
@@ -159,7 +161,7 @@ func (m FontViewer) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 			m.selectedPixel.y++
-		case "up":
+		case key.Matches(msg, m.keyMap.Up):
 			if m.selectedPixel.y == 0 {
 				if m.selectedChar/m.font.Width == 0 {
 					return m, nil
@@ -169,8 +171,8 @@ func (m FontViewer) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 			m.selectedPixel.y--
-		case " ":
-			m.font.Chars[m.selectedChar][m.selectedPixel.y][m.selectedPixel.x] = !m.font.Chars[m.selectedChar][m.selectedPixel.y][m.selectedPixel.x]
+		case key.Matches(msg, m.keyMap.TogglePixel):
+			m.font = m.font.TogglePixel(m.selectedChar, m.selectedPixel.x, m.selectedPixel.y)
 		}
 		return m, nil
 	case tea.WindowSizeMsg:
